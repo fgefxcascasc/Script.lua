@@ -1,88 +1,209 @@
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- GUI
-local gui = Instance.new("ScreenGui")
-gui.Parent = player:WaitForChild("PlayerGui")
+local ESPEnabled = true
+local ESPColor = Color3.fromRGB(255,0,0)
+local Mode = "Highlight"
 
-local frame = Instance.new("Frame")
-frame.Parent = gui
-frame.Size = UDim2.new(0,210,0,220)
-frame.Position = UDim2.new(0,20,0,200)
-frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
+local ESPObjects = {}
 
-Instance.new("UICorner",frame)
+-- GUI TO LUA (YOUR GUI)
 
--- Title
-local title = Instance.new("TextLabel")
-title.Parent = frame
-title.Size = UDim2.new(1,0,0,35)
-title.BackgroundColor3 = Color3.fromRGB(40,40,40)
-title.Text = "ESP MENU"
-title.TextColor3 = Color3.new(1,1,1)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 16
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local UIGradient = Instance.new("UIGradient")
+local TextLabel = Instance.new("TextLabel")
+local TextButton = Instance.new("TextButton")
+local TextButton_2 = Instance.new("TextButton")
+local TextButton_3 = Instance.new("TextButton")
+local TextButton_4 = Instance.new("TextButton")
 
-Instance.new("UICorner",title)
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- X Button
-local close = Instance.new("TextButton")
-close.Parent = title
-close.Size = UDim2.new(0,35,1,0)
-close.Position = UDim2.new(1,-35,0,0)
-close.Text = "X"
-close.BackgroundColor3 = Color3.fromRGB(200,50,50)
-close.TextColor3 = Color3.new(1,1,1)
-close.Font = Enum.Font.GothamBold
-close.TextSize = 16
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(58,58,58)
+Frame.BorderSizePixel = 0
+Frame.Position = UDim2.new(0.044,0,0.340,0)
+Frame.Size = UDim2.new(0,179,0,213)
 
-Instance.new("UICorner",close)
+UIGradient.Parent = Frame
 
--- Close GUI
-close.MouseButton1Click:Connect(function()
-	gui:Destroy()
-end)
+TextLabel.Parent = Frame
+TextLabel.BackgroundTransparency = 1
+TextLabel.Position = UDim2.new(0.12,0,0,0)
+TextLabel.Size = UDim2.new(0,135,0,48)
+TextLabel.Font = Enum.Font.SourceSans
+TextLabel.Text = "ESP MENU"
+TextLabel.TextColor3 = Color3.fromRGB(255,120,2)
+TextLabel.TextScaled = true
 
--- Button maker
-local function makeButton(text,y)
+TextButton.Parent = Frame
+TextButton.Position = UDim2.new(0.08,0,0.27,0)
+TextButton.Size = UDim2.new(0,148,0,35)
+TextButton.Text = "ESP: ON"
+TextButton.TextScaled = true
 
-	local b = Instance.new("TextButton")
-	b.Parent = frame
-	b.Size = UDim2.new(1,-20,0,35)
-	b.Position = UDim2.new(0,10,0,y)
-	b.BackgroundColor3 = Color3.fromRGB(45,45,45)
-	b.TextColor3 = Color3.new(1,1,1)
-	b.Font = Enum.Font.Gotham
-	b.TextSize = 14
-	b.Text = text
-	
-	Instance.new("UICorner",b)
+TextButton_2.Parent = Frame
+TextButton_2.Position = UDim2.new(0.08,0,0.49,0)
+TextButton_2.Size = UDim2.new(0,148,0,35)
+TextButton_2.Text = "MODE: Highlight"
+TextButton_2.TextScaled = true
 
-	return b
+TextButton_3.Parent = Frame
+TextButton_3.Position = UDim2.new(0.08,0,0.72,0)
+TextButton_3.Size = UDim2.new(0,148,0,35)
+TextButton_3.Text = "RM COLOR"
+TextButton_3.TextScaled = true
+
+TextButton_4.Parent = Frame
+TextButton_4.Size = UDim2.new(0,32,0,34)
+TextButton_4.Text = "X"
+TextButton_4.TextScaled = true
+
+-- BUTTON VARIABLES
+local toggle = TextButton
+local modeBtn = TextButton_2
+local colorBtn = TextButton_3
+local closeBtn = TextButton_4
+
+-- ENEMY CHECK
+local function isEnemy(plr)
+
+	if plr == player then return false end
+
+	if player.Team and plr.Team then
+		if player.Team == plr.Team then
+			return false
+		end
+	end
+
+	return true
 end
 
--- Your buttons
-local toggle = makeButton("ESP: ON",45)
-local modeBtn = makeButton("Mode",85)
-local colorBtn = makeButton("Random Color",125)
-local refreshBtn = makeButton("Refresh",165)
+-- CREATE ESP
+local function createESP(plr)
 
--- Button test actions
+	if not ESPEnabled then return end
+	if not isEnemy(plr) then return end
+	if not plr.Character then return end
+
+	local char = plr.Character
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+
+	if ESPObjects[plr] then
+		ESPObjects[plr]:Destroy()
+	end
+
+	if Mode == "Highlight" then
+
+		local h = Instance.new("Highlight")
+		h.FillColor = ESPColor
+		h.FillTransparency = 0.5
+		h.OutlineColor = Color3.new(1,1,1)
+		h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+		h.Parent = char
+
+		ESPObjects[plr] = h
+
+	else
+
+		local box = Instance.new("BoxHandleAdornment")
+		box.Adornee = root
+		box.Size = Vector3.new(4,6,2)
+		box.Color3 = ESPColor
+		box.AlwaysOnTop = true
+		box.ZIndex = 10
+		box.Parent = root
+
+		ESPObjects[plr] = box
+
+	end
+
+end
+
+-- APPLY ESP
+local function applyESP()
+
+	for _,plr in pairs(Players:GetPlayers()) do
+		createESP(plr)
+	end
+
+end
+
+-- CLEAR ESP
+local function clearESP()
+
+	for _,v in pairs(ESPObjects) do
+		if v then v:Destroy() end
+	end
+
+	ESPObjects = {}
+
+end
+
+-- PLAYER SETUP
+local function setup(plr)
+
+	plr.CharacterAdded:Connect(function()
+
+		task.wait(1)
+
+		if ESPEnabled then
+			createESP(plr)
+		end
+
+	end)
+
+end
+
+for _,p in pairs(Players:GetPlayers()) do
+	setup(p)
+end
+
+Players.PlayerAdded:Connect(setup)
+
+-- BUTTONS
+
 toggle.MouseButton1Click:Connect(function()
-	print("ESP button clicked")
+
+	ESPEnabled = not ESPEnabled
+	toggle.Text = ESPEnabled and "ESP: ON" or "ESP: OFF"
+
+	clearESP()
+	if ESPEnabled then applyESP() end
+
 end)
 
 modeBtn.MouseButton1Click:Connect(function()
-	print("Mode button clicked")
+
+	Mode = (Mode == "Highlight") and "Box" or "Highlight"
+	modeBtn.Text = "MODE: "..Mode
+
+	clearESP()
+	if ESPEnabled then applyESP() end
+
 end)
 
 colorBtn.MouseButton1Click:Connect(function()
-	print("Color button clicked")
+
+	ESPColor = Color3.fromRGB(
+		math.random(255),
+		math.random(255),
+		math.random(255)
+	)
+
+	clearESP()
+	if ESPEnabled then applyESP() end
+
 end)
 
-refreshBtn.MouseButton1Click:Connect(function()
-	print("Refresh button clicked")
+closeBtn.MouseButton1Click:Connect(function()
+
+	ScreenGui:Destroy()
+
 end)
+
+task.wait(1)
+applyESP()
