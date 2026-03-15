@@ -1,133 +1,256 @@
 local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
 local player = Players.LocalPlayer
 
 local ESPEnabled = true
-local ESPColor = Color3.fromRGB(255,0,0)
 local Mode = "Highlight"
+local ESPColor = Color3.fromRGB(255,0,0)
+
+local WalkSpeed = 16
 
 local ESPObjects = {}
 
+-------------------------------------------------
 -- GUI
+-------------------------------------------------
 
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local UIGradient = Instance.new("UIGradient")
-local TextLabel = Instance.new("TextLabel")
-local TextButton = Instance.new("TextButton")
-local TextButton_2 = Instance.new("TextButton")
-local TextButton_3 = Instance.new("TextButton")
-local TextButton_4 = Instance.new("TextButton")
+local gui = Instance.new("ScreenGui",player.PlayerGui)
 
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local Main = Instance.new("Frame",gui)
+Main.Size = UDim2.new(0,180,0,230)
+Main.Position = UDim2.new(0.04,0,0.34,0)
+Main.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Main.Active = true
+Main.Draggable = true
 
-Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(58,58,58)
-Frame.BorderSizePixel = 0
-Frame.Position = UDim2.new(0.04,0,0.34,0)
-Frame.Size = UDim2.new(0,179,0,213)
-Frame.Active = true
-Frame.Draggable = true
+local stroke = Instance.new("UIStroke",Main)
+stroke.Color = Color3.fromRGB(255,121,3)
+stroke.Thickness = 4
 
-UIGradient.Parent = Frame
+-------------------------------------------------
+-- LOADING
+-------------------------------------------------
 
-TextLabel.Parent = Frame
-TextLabel.BackgroundTransparency = 1
-TextLabel.Position = UDim2.new(0.12,0,0,0)
-TextLabel.Size = UDim2.new(0,135,0,48)
-TextLabel.Font = Enum.Font.SourceSans
-TextLabel.Text = "ESP MENU"
-TextLabel.TextColor3 = Color3.fromRGB(255,120,2)
-TextLabel.TextScaled = true
+local loading = Instance.new("TextLabel",Main)
+loading.Size = UDim2.new(1,0,0,40)
+loading.Position = UDim2.new(0,0,0.35,0)
+loading.BackgroundTransparency = 1
+loading.Text = "Loading..."
+loading.TextScaled = true
+loading.TextColor3 = Color3.fromRGB(255,121,3)
 
-TextButton.Parent = Frame
-TextButton.Position = UDim2.new(0.08,0,0.27,0)
-TextButton.Size = UDim2.new(0,148,0,35)
-TextButton.Text = "ESP: ON"
-TextButton.TextScaled = true
+local barbg = Instance.new("Frame",Main)
+barbg.Size = UDim2.new(0.8,0,0,18)
+barbg.Position = UDim2.new(0.1,0,0.6,0)
+barbg.BackgroundColor3 = Color3.fromRGB(70,70,70)
 
-TextButton_2.Parent = Frame
-TextButton_2.Position = UDim2.new(0.08,0,0.49,0)
-TextButton_2.Size = UDim2.new(0,148,0,35)
-TextButton_2.Text = "MODE: Highlight"
-TextButton_2.TextScaled = true
+local bar = Instance.new("Frame",barbg)
+bar.Size = UDim2.new(0,0,1,0)
+bar.BackgroundColor3 = Color3.fromRGB(255,121,3)
 
-TextButton_3.Parent = Frame
-TextButton_3.Position = UDim2.new(0.08,0,0.72,0)
-TextButton_3.Size = UDim2.new(0,148,0,35)
-TextButton_3.Text = "RM COLOR"
-TextButton_3.TextScaled = true
-
-TextButton_4.Parent = Frame
-TextButton_4.Size = UDim2.new(0,32,0,32)
-TextButton_4.Position = UDim2.new(1,-35,0,0)
-TextButton_4.Text = "X"
-TextButton_4.TextScaled = true
-
--- BUTTON VARIABLES
-local toggle = TextButton
-local modeBtn = TextButton_2
-local colorBtn = TextButton_3
-local closeBtn = TextButton_4
-
--- ENEMY CHECK
-local function isEnemy(plr)
-
-	if plr == player then return false end
-
-	if player.Team and plr.Team then
-		if player.Team == plr.Team then
-			return false
-		end
-	end
-
-	return true
+for i=1,100 do
+	bar.Size = UDim2.new(i/100,0,1,0)
+	task.wait(0.02)
 end
 
--- CREATE ESP
+loading:Destroy()
+barbg:Destroy()
+
+-------------------------------------------------
+-- PAGES
+-------------------------------------------------
+
+local ESPPage = Instance.new("Frame",Main)
+ESPPage.Size = UDim2.new(1,0,1,0)
+ESPPage.BackgroundTransparency = 1
+
+local PlayerPage = Instance.new("Frame",Main)
+PlayerPage.Size = UDim2.new(1,0,1,0)
+PlayerPage.BackgroundTransparency = 1
+PlayerPage.Visible = false
+
+-------------------------------------------------
+-- PAGE 1
+-------------------------------------------------
+
+local title = Instance.new("TextLabel",ESPPage)
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundTransparency = 1
+title.Text = "ESP MENU"
+title.TextScaled = true
+title.TextColor3 = Color3.fromRGB(255,121,3)
+
+local toggle = Instance.new("TextButton",ESPPage)
+toggle.Size = UDim2.new(0.8,0,0,30)
+toggle.Position = UDim2.new(0.1,0,0.25,0)
+toggle.Text = "ESP: ON"
+toggle.BackgroundColor3 = Color3.fromRGB(70,70,70)
+toggle.TextColor3 = Color3.fromRGB(255,121,3)
+
+local modebtn = Instance.new("TextButton",ESPPage)
+modebtn.Size = UDim2.new(0.8,0,0,30)
+modebtn.Position = UDim2.new(0.1,0,0.45,0)
+modebtn.Text = "MODE: Highlight"
+modebtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+modebtn.TextColor3 = Color3.fromRGB(255,121,3)
+
+local colorbtn = Instance.new("TextButton",ESPPage)
+colorbtn.Size = UDim2.new(0.8,0,0,30)
+colorbtn.Position = UDim2.new(0.1,0,0.65,0)
+colorbtn.Text = "RM COLOR"
+colorbtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+colorbtn.TextColor3 = Color3.fromRGB(255,121,3)
+
+local nextbtn = Instance.new("TextButton",ESPPage)
+nextbtn.Size = UDim2.new(0.4,0,0,25)
+nextbtn.Position = UDim2.new(0.55,0,0.85,0)
+nextbtn.Text = "NEXT ▶"
+nextbtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+nextbtn.TextColor3 = Color3.fromRGB(255,121,3)
+
+-------------------------------------------------
+-- PAGE 2
+-------------------------------------------------
+
+local title2 = Instance.new("TextLabel",PlayerPage)
+title2.Size = UDim2.new(1,0,0,40)
+title2.BackgroundTransparency = 1
+title2.Text = "PLAYER"
+title2.TextScaled = true
+title2.TextColor3 = Color3.fromRGB(255,121,3)
+
+local speedbtn = Instance.new("TextButton",PlayerPage)
+speedbtn.Size = UDim2.new(0.8,0,0,30)
+speedbtn.Position = UDim2.new(0.1,0,0.25,0)
+speedbtn.Text = "SPEED: 16"
+speedbtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+speedbtn.TextColor3 = Color3.fromRGB(255,121,3)
+
+local userLabel = Instance.new("TextLabel",PlayerPage)
+userLabel.Size = UDim2.new(1,0,0,20)
+userLabel.Position = UDim2.new(0,0,0.6,0)
+userLabel.BackgroundTransparency = 1
+userLabel.TextScaled = true
+userLabel.TextColor3 = Color3.fromRGB(255,121,3)
+userLabel.Text = "User: "..player.Name
+
+local shiftMsg = Instance.new("TextLabel",PlayerPage)
+shiftMsg.Size = UDim2.new(1,0,0,20)
+shiftMsg.Position = UDim2.new(0,0,0.7,0)
+shiftMsg.BackgroundTransparency = 1
+shiftMsg.TextScaled = true
+shiftMsg.TextColor3 = Color3.fromRGB(180,180,180)
+shiftMsg.Text = "Press RightShift to close"
+
+local backbtn = Instance.new("TextButton",PlayerPage)
+backbtn.Size = UDim2.new(0.4,0,0,25)
+backbtn.Position = UDim2.new(0.05,0,0.88,0)
+backbtn.Text = "◀ BACK"
+backbtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+backbtn.TextColor3 = Color3.fromRGB(255,121,3)
+
+-------------------------------------------------
+-- PAGE SWITCH
+-------------------------------------------------
+
+nextbtn.MouseButton1Click:Connect(function()
+	ESPPage.Visible = false
+	PlayerPage.Visible = true
+end)
+
+backbtn.MouseButton1Click:Connect(function()
+	PlayerPage.Visible = false
+	ESPPage.Visible = true
+end)
+
+-------------------------------------------------
+-- RIGHTSHIFT
+-------------------------------------------------
+
+local open = true
+
+UIS.InputBegan:Connect(function(input,gpe)
+	if gpe then return end
+	if input.KeyCode == Enum.KeyCode.RightShift then
+		open = not open
+		Main.Visible = open
+	end
+end)
+
+-------------------------------------------------
+-- SPEED (UNCHANGED)
+-------------------------------------------------
+
+speedbtn.MouseButton1Click:Connect(function()
+
+	WalkSpeed += 10
+	if WalkSpeed > 100 then
+		WalkSpeed = 16
+	end
+
+	speedbtn.Text = "SPEED: "..WalkSpeed
+
+end)
+
+RunService.RenderStepped:Connect(function()
+
+	local char = player.Character
+	if char then
+
+		local hum = char:FindFirstChildOfClass("Humanoid")
+
+		if hum and hum.WalkSpeed ~= WalkSpeed then
+			hum.WalkSpeed = WalkSpeed
+		end
+
+	end
+
+end)
+
+player.CharacterAdded:Connect(function(char)
+
+	local hum = char:WaitForChild("Humanoid")
+
+	task.wait(0.5)
+
+	hum.WalkSpeed = WalkSpeed
+
+end)
+
+-------------------------------------------------
+-- ESP SYSTEM
+-------------------------------------------------
+
+local function clearESP()
+	for _,v in pairs(ESPObjects) do
+		if v then v:Destroy() end
+	end
+	table.clear(ESPObjects)
+end
+
 local function createESP(plr)
 
 	if not ESPEnabled then return end
-	if not isEnemy(plr) then return end
+	if plr == player then return end
 
-	local char = plr.Character or plr.CharacterAdded:Wait()
-	local root = char:FindFirstChild("HumanoidRootPart")
+	local char = plr.Character
+	if not char then return end
 
-	if not root then return end
+	local h = Instance.new("Highlight")
+	h.FillColor = ESPColor
+	h.FillTransparency = 0.5
+	h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	h.Parent = char
 
-	if ESPObjects[plr] then
-		ESPObjects[plr]:Destroy()
-	end
-
-	if Mode == "Highlight" then
-
-		local h = Instance.new("Highlight")
-		h.FillColor = ESPColor
-		h.FillTransparency = 0.5
-		h.OutlineColor = Color3.new(1,1,1)
-		h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-		h.Parent = char
-
-		ESPObjects[plr] = h
-
-	else
-
-		local box = Instance.new("BoxHandleAdornment")
-		box.Adornee = root
-		box.Size = Vector3.new(4,6,2)
-		box.Color3 = ESPColor
-		box.AlwaysOnTop = true
-		box.ZIndex = 10
-		box.Parent = root
-
-		ESPObjects[plr] = box
-
-	end
+	ESPObjects[plr] = h
 
 end
 
--- APPLY ESP
 local function applyESP()
+
+	clearESP()
 
 	for _,plr in pairs(Players:GetPlayers()) do
 		createESP(plr)
@@ -135,79 +258,49 @@ local function applyESP()
 
 end
 
--- CLEAR ESP
-local function clearESP()
-
-	for _,v in pairs(ESPObjects) do
-		if v then v:Destroy() end
-	end
-
-	table.clear(ESPObjects)
-
-end
-
--- PLAYER SETUP
-local function setup(plr)
-
-	plr.CharacterAdded:Connect(function()
-
-		task.wait(0.5)
-
-		if ESPEnabled then
-			createESP(plr)
-		end
-
-	end)
-
-end
-
-for _,p in pairs(Players:GetPlayers()) do
-	setup(p)
-end
-
-Players.PlayerAdded:Connect(setup)
-
+-------------------------------------------------
 -- BUTTONS
+-------------------------------------------------
 
 toggle.MouseButton1Click:Connect(function()
 
 	ESPEnabled = not ESPEnabled
 	toggle.Text = ESPEnabled and "ESP: ON" or "ESP: OFF"
 
-	clearESP()
-	if ESPEnabled then applyESP() end
+	applyESP()
 
 end)
 
-modeBtn.MouseButton1Click:Connect(function()
+colorbtn.MouseButton1Click:Connect(function()
 
-	Mode = (Mode == "Highlight") and "Box" or "Highlight"
-	modeBtn.Text = "MODE: "..Mode
-
-	clearESP()
-	if ESPEnabled then applyESP() end
+	ESPColor = Color3.fromRGB(math.random(255),math.random(255),math.random(255))
+	applyESP()
 
 end)
 
-colorBtn.MouseButton1Click:Connect(function()
+-------------------------------------------------
+-- AUTO ESP
+-------------------------------------------------
 
-	ESPColor = Color3.fromRGB(
-		math.random(255),
-		math.random(255),
-		math.random(255)
-	)
+Players.PlayerAdded:Connect(function(plr)
 
-	clearESP()
-	if ESPEnabled then applyESP() end
-
-end)
-
-closeBtn.MouseButton1Click:Connect(function()
-
-	clearESP()
-	ScreenGui:Destroy()
+	plr.CharacterAdded:Connect(function()
+		task.wait(1)
+		createESP(plr)
+	end)
 
 end)
+
+for _,plr in pairs(Players:GetPlayers()) do
+
+	if plr ~= player then
+		plr.CharacterAdded:Connect(function()
+			task.wait(1)
+			createESP(plr)
+		end)
+	end
+
+end
 
 task.wait(1)
 applyESP()
