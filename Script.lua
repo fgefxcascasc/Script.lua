@@ -7,7 +7,7 @@ local Mode = "Highlight"
 
 local ESPObjects = {}
 
--- GUI TO LUA (YOUR GUI)
+-- GUI
 
 local ScreenGui = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
@@ -24,8 +24,10 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Frame.Parent = ScreenGui
 Frame.BackgroundColor3 = Color3.fromRGB(58,58,58)
 Frame.BorderSizePixel = 0
-Frame.Position = UDim2.new(0.044,0,0.340,0)
+Frame.Position = UDim2.new(0.04,0,0.34,0)
 Frame.Size = UDim2.new(0,179,0,213)
+Frame.Active = true
+Frame.Draggable = true
 
 UIGradient.Parent = Frame
 
@@ -57,7 +59,8 @@ TextButton_3.Text = "RM COLOR"
 TextButton_3.TextScaled = true
 
 TextButton_4.Parent = Frame
-TextButton_4.Size = UDim2.new(0,32,0,34)
+TextButton_4.Size = UDim2.new(0,32,0,32)
+TextButton_4.Position = UDim2.new(1,-35,0,0)
 TextButton_4.Text = "X"
 TextButton_4.TextScaled = true
 
@@ -86,10 +89,10 @@ local function createESP(plr)
 
 	if not ESPEnabled then return end
 	if not isEnemy(plr) then return end
-	if not plr.Character then return end
 
-	local char = plr.Character
+	local char = plr.Character or plr.CharacterAdded:Wait()
 	local root = char:FindFirstChild("HumanoidRootPart")
+
 	if not root then return end
 
 	if ESPObjects[plr] then
@@ -139,7 +142,7 @@ local function clearESP()
 		if v then v:Destroy() end
 	end
 
-	ESPObjects = {}
+	table.clear(ESPObjects)
 
 end
 
@@ -148,7 +151,7 @@ local function setup(plr)
 
 	plr.CharacterAdded:Connect(function()
 
-		task.wait(1)
+		task.wait(0.5)
 
 		if ESPEnabled then
 			createESP(plr)
@@ -201,6 +204,7 @@ end)
 
 closeBtn.MouseButton1Click:Connect(function()
 
+	clearESP()
 	ScreenGui:Destroy()
 
 end)
