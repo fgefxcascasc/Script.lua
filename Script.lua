@@ -4,11 +4,17 @@ local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 
+-------------------------------------------------
+-- SETTINGS
+-------------------------------------------------
+
 local ESPEnabled = true
 local Mode = "Highlight"
 local ESPColor = Color3.fromRGB(255,0,0)
 
 local WalkSpeed = 16
+local SpeedEnabled = true
+local Noclip = false
 
 local ESPObjects = {}
 
@@ -16,47 +22,117 @@ local ESPObjects = {}
 -- GUI
 -------------------------------------------------
 
-local gui = Instance.new("ScreenGui",player.PlayerGui)
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
 
-local Main = Instance.new("Frame",gui)
-Main.Size = UDim2.new(0,180,0,230)
+local Main = Instance.new("Frame")
+Main.Parent = gui
+Main.Size = UDim2.new(0,200,0,250)
 Main.Position = UDim2.new(0.04,0,0.34,0)
-Main.BackgroundColor3 = Color3.fromRGB(60,60,60)
-Main.Active = true
-Main.Draggable = true
+Main.BackgroundColor3 = Color3.fromRGB(35,0,0)
+Main.Visible = false
 
-local stroke = Instance.new("UIStroke",Main)
-stroke.Color = Color3.fromRGB(255,121,3)
-stroke.Thickness = 4
+Instance.new("UICorner",Main)
 
 -------------------------------------------------
 -- LOADING
 -------------------------------------------------
 
-local loading = Instance.new("TextLabel",Main)
-loading.Size = UDim2.new(1,0,0,40)
-loading.Position = UDim2.new(0,0,0.35,0)
-loading.BackgroundTransparency = 1
-loading.Text = "Loading..."
-loading.TextScaled = true
-loading.TextColor3 = Color3.fromRGB(255,121,3)
+local LoadingFrame = Instance.new("Frame")
+LoadingFrame.Parent = gui
+LoadingFrame.Size = UDim2.new(0,260,0,120)
+LoadingFrame.Position = UDim2.new(0.5,-130,0.5,-60)
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(35,0,0)
 
-local barbg = Instance.new("Frame",Main)
-barbg.Size = UDim2.new(0.8,0,0,18)
-barbg.Position = UDim2.new(0.1,0,0.6,0)
-barbg.BackgroundColor3 = Color3.fromRGB(70,70,70)
+Instance.new("UICorner",LoadingFrame)
 
-local bar = Instance.new("Frame",barbg)
+local loadingText = Instance.new("TextLabel",LoadingFrame)
+loadingText.Size = UDim2.new(1,0,0,40)
+loadingText.BackgroundTransparency = 1
+loadingText.Text = "Loading Script..."
+loadingText.TextScaled = true
+loadingText.TextColor3 = Color3.fromRGB(255,120,120)
+
+local barBG = Instance.new("Frame",LoadingFrame)
+barBG.Size = UDim2.new(0.8,0,0,18)
+barBG.Position = UDim2.new(0.1,0,0.6,0)
+barBG.BackgroundColor3 = Color3.fromRGB(60,60,60)
+
+Instance.new("UICorner",barBG)
+
+local bar = Instance.new("Frame",barBG)
 bar.Size = UDim2.new(0,0,1,0)
-bar.BackgroundColor3 = Color3.fromRGB(255,121,3)
+bar.BackgroundColor3 = Color3.fromRGB(255,80,80)
 
-for i=1,100 do
+Instance.new("UICorner",bar)
+
+for i = 1,100 do
+
 	bar.Size = UDim2.new(i/100,0,1,0)
-	task.wait(0.02)
+
+	if i == 30 then
+		loadingText.Text = "Loading UI..."
+	elseif i == 60 then
+		loadingText.Text = "Loading Systems..."
+	elseif i == 90 then
+		loadingText.Text = "Almost Done..."
+	end
+
+	task.wait(0.015)
+
 end
 
-loading:Destroy()
-barbg:Destroy()
+task.wait(0.3)
+
+LoadingFrame:Destroy()
+Main.Visible = true
+
+-------------------------------------------------
+-- DRAG MENU
+-------------------------------------------------
+
+local DragBar = Instance.new("Frame",Main)
+DragBar.Size = UDim2.new(1,0,0,30)
+DragBar.BackgroundTransparency = 1
+
+local dragging = false
+local dragStart
+local startPos
+
+DragBar.InputBegan:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = Main.Position
+	end
+
+end)
+
+UIS.InputChanged:Connect(function(input)
+
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+
+		local delta = input.Position - dragStart
+
+		Main.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+
+	end
+
+end)
+
+UIS.InputEnded:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = false
+	end
+
+end)
 
 -------------------------------------------------
 -- PAGES
@@ -80,35 +156,27 @@ title.Size = UDim2.new(1,0,0,40)
 title.BackgroundTransparency = 1
 title.Text = "ESP MENU"
 title.TextScaled = true
-title.TextColor3 = Color3.fromRGB(255,121,3)
+title.TextColor3 = Color3.fromRGB(255,120,120)
 
 local toggle = Instance.new("TextButton",ESPPage)
 toggle.Size = UDim2.new(0.8,0,0,30)
 toggle.Position = UDim2.new(0.1,0,0.25,0)
 toggle.Text = "ESP: ON"
-toggle.BackgroundColor3 = Color3.fromRGB(70,70,70)
-toggle.TextColor3 = Color3.fromRGB(255,121,3)
 
 local modebtn = Instance.new("TextButton",ESPPage)
 modebtn.Size = UDim2.new(0.8,0,0,30)
 modebtn.Position = UDim2.new(0.1,0,0.45,0)
 modebtn.Text = "MODE: Highlight"
-modebtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-modebtn.TextColor3 = Color3.fromRGB(255,121,3)
 
 local colorbtn = Instance.new("TextButton",ESPPage)
 colorbtn.Size = UDim2.new(0.8,0,0,30)
 colorbtn.Position = UDim2.new(0.1,0,0.65,0)
-colorbtn.Text = "RM COLOR"
-colorbtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-colorbtn.TextColor3 = Color3.fromRGB(255,121,3)
+colorbtn.Text = "RANDOM COLOR"
 
 local nextbtn = Instance.new("TextButton",ESPPage)
 nextbtn.Size = UDim2.new(0.4,0,0,25)
 nextbtn.Position = UDim2.new(0.55,0,0.85,0)
 nextbtn.Text = "NEXT ▶"
-nextbtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-nextbtn.TextColor3 = Color3.fromRGB(255,121,3)
 
 -------------------------------------------------
 -- PAGE 2
@@ -119,37 +187,83 @@ title2.Size = UDim2.new(1,0,0,40)
 title2.BackgroundTransparency = 1
 title2.Text = "PLAYER"
 title2.TextScaled = true
-title2.TextColor3 = Color3.fromRGB(255,121,3)
+title2.TextColor3 = Color3.fromRGB(255,120,120)
 
-local speedbtn = Instance.new("TextButton",PlayerPage)
-speedbtn.Size = UDim2.new(0.8,0,0,30)
-speedbtn.Position = UDim2.new(0.1,0,0.25,0)
-speedbtn.Text = "SPEED: 16"
-speedbtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-speedbtn.TextColor3 = Color3.fromRGB(255,121,3)
+local speedLabel = Instance.new("TextLabel",PlayerPage)
+speedLabel.Size = UDim2.new(0.8,0,0,25)
+speedLabel.Position = UDim2.new(0.1,0,0.2,0)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Text = "Speed: 16"
+speedLabel.TextScaled = true
 
-local userLabel = Instance.new("TextLabel",PlayerPage)
-userLabel.Size = UDim2.new(1,0,0,20)
-userLabel.Position = UDim2.new(0,0,0.6,0)
-userLabel.BackgroundTransparency = 1
-userLabel.TextScaled = true
-userLabel.TextColor3 = Color3.fromRGB(255,121,3)
-userLabel.Text = "User: "..player.Name
+local sliderBG = Instance.new("Frame",PlayerPage)
+sliderBG.Size = UDim2.new(0.8,0,0,10)
+sliderBG.Position = UDim2.new(0.1,0,0.32,0)
+sliderBG.BackgroundColor3 = Color3.fromRGB(70,70,70)
 
-local shiftMsg = Instance.new("TextLabel",PlayerPage)
-shiftMsg.Size = UDim2.new(1,0,0,20)
-shiftMsg.Position = UDim2.new(0,0,0.7,0)
-shiftMsg.BackgroundTransparency = 1
-shiftMsg.TextScaled = true
-shiftMsg.TextColor3 = Color3.fromRGB(180,180,180)
-shiftMsg.Text = "Press RightShift to close"
+local slider = Instance.new("Frame",sliderBG)
+slider.Size = UDim2.new(0,10,1,0)
+slider.BackgroundColor3 = Color3.fromRGB(255,120,120)
+
+local draggingSlider = false
+
+slider.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		draggingSlider = true
+	end
+end)
+
+UIS.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		draggingSlider = false
+	end
+end)
+
+UIS.InputChanged:Connect(function()
+
+	if draggingSlider then
+
+		local mouse = UIS:GetMouseLocation().X
+
+		local percent = math.clamp(
+			(mouse - sliderBG.AbsolutePosition.X) / sliderBG.AbsoluteSize.X,
+			0,1
+		)
+
+		slider.Size = UDim2.new(percent,0,1,0)
+
+		WalkSpeed = math.floor(16 + (100-16)*percent)
+
+		speedLabel.Text = "Speed: "..WalkSpeed
+
+	end
+
+end)
+
+local speedToggle = Instance.new("TextButton",PlayerPage)
+speedToggle.Size = UDim2.new(0.8,0,0,30)
+speedToggle.Position = UDim2.new(0.1,0,0.45,0)
+speedToggle.Text = "Speed: ON"
+
+speedToggle.MouseButton1Click:Connect(function()
+	SpeedEnabled = not SpeedEnabled
+	speedToggle.Text = SpeedEnabled and "Speed: ON" or "Speed: OFF"
+end)
+
+local noclipBtn = Instance.new("TextButton",PlayerPage)
+noclipBtn.Size = UDim2.new(0.8,0,0,30)
+noclipBtn.Position = UDim2.new(0.1,0,0.60,0)
+noclipBtn.Text = "Noclip: OFF"
+
+noclipBtn.MouseButton1Click:Connect(function()
+	Noclip = not Noclip
+	noclipBtn.Text = Noclip and "Noclip: ON" or "Noclip: OFF"
+end)
 
 local backbtn = Instance.new("TextButton",PlayerPage)
 backbtn.Size = UDim2.new(0.4,0,0,25)
-backbtn.Position = UDim2.new(0.05,0,0.88,0)
+backbtn.Position = UDim2.new(0.05,0,0.85,0)
 backbtn.Text = "◀ BACK"
-backbtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-backbtn.TextColor3 = Color3.fromRGB(255,121,3)
 
 -------------------------------------------------
 -- PAGE SWITCH
@@ -166,56 +280,55 @@ backbtn.MouseButton1Click:Connect(function()
 end)
 
 -------------------------------------------------
--- RIGHTSHIFT
+-- RIGHT SHIFT
 -------------------------------------------------
 
 local open = true
 
 UIS.InputBegan:Connect(function(input,gpe)
+
 	if gpe then return end
+
 	if input.KeyCode == Enum.KeyCode.RightShift then
 		open = not open
 		Main.Visible = open
 	end
+
 end)
 
 -------------------------------------------------
--- SPEED (UNCHANGED)
+-- SPEED
 -------------------------------------------------
-
-speedbtn.MouseButton1Click:Connect(function()
-
-	WalkSpeed += 10
-	if WalkSpeed > 100 then
-		WalkSpeed = 16
-	end
-
-	speedbtn.Text = "SPEED: "..WalkSpeed
-
-end)
 
 RunService.RenderStepped:Connect(function()
 
 	local char = player.Character
-	if char then
+	if not char then return end
 
-		local hum = char:FindFirstChildOfClass("Humanoid")
+	local hum = char:FindFirstChildOfClass("Humanoid")
 
-		if hum and hum.WalkSpeed ~= WalkSpeed then
-			hum.WalkSpeed = WalkSpeed
-		end
-
+	if hum then
+		hum.WalkSpeed = SpeedEnabled and WalkSpeed or 16
 	end
 
 end)
 
-player.CharacterAdded:Connect(function(char)
+-------------------------------------------------
+-- NOCLIP
+-------------------------------------------------
 
-	local hum = char:WaitForChild("Humanoid")
+RunService.Stepped:Connect(function()
 
-	task.wait(0.5)
+	if not Noclip then return end
 
-	hum.WalkSpeed = WalkSpeed
+	local char = player.Character
+	if not char then return end
+
+	for _,v in pairs(char:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.CanCollide = false
+		end
+	end
 
 end)
 
@@ -224,10 +337,15 @@ end)
 -------------------------------------------------
 
 local function clearESP()
+
 	for _,v in pairs(ESPObjects) do
-		if v then v:Destroy() end
+		if v then
+			v:Destroy()
+		end
 	end
+
 	table.clear(ESPObjects)
+
 end
 
 local function createESP(plr)
@@ -238,13 +356,33 @@ local function createESP(plr)
 	local char = plr.Character
 	if not char then return end
 
-	local h = Instance.new("Highlight")
-	h.FillColor = ESPColor
-	h.FillTransparency = 0.5
-	h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-	h.Parent = char
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return end
 
-	ESPObjects[plr] = h
+	if Mode == "Highlight" then
+
+		local h = Instance.new("Highlight")
+		h.FillColor = ESPColor
+		h.OutlineColor = ESPColor
+		h.FillTransparency = 0.5
+		h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+		h.Parent = char
+
+		ESPObjects[plr] = h
+
+	else
+
+		local box = Instance.new("BoxHandleAdornment")
+		box.Size = Vector3.new(4,6,2)
+		box.Adornee = root
+		box.AlwaysOnTop = true
+		box.ZIndex = 10
+		box.Color3 = ESPColor
+		box.Parent = root
+
+		ESPObjects[plr] = box
+
+	end
 
 end
 
@@ -258,10 +396,6 @@ local function applyESP()
 
 end
 
--------------------------------------------------
--- BUTTONS
--------------------------------------------------
-
 toggle.MouseButton1Click:Connect(function()
 
 	ESPEnabled = not ESPEnabled
@@ -271,16 +405,31 @@ toggle.MouseButton1Click:Connect(function()
 
 end)
 
-colorbtn.MouseButton1Click:Connect(function()
+modebtn.MouseButton1Click:Connect(function()
 
-	ESPColor = Color3.fromRGB(math.random(255),math.random(255),math.random(255))
+	if Mode == "Highlight" then
+		Mode = "Box"
+	else
+		Mode = "Highlight"
+	end
+
+	modebtn.Text = "MODE: "..Mode
+
 	applyESP()
 
 end)
 
--------------------------------------------------
--- AUTO ESP
--------------------------------------------------
+colorbtn.MouseButton1Click:Connect(function()
+
+	ESPColor = Color3.fromRGB(
+		math.random(255),
+		math.random(255),
+		math.random(255)
+	)
+
+	applyESP()
+
+end)
 
 Players.PlayerAdded:Connect(function(plr)
 
@@ -294,10 +443,12 @@ end)
 for _,plr in pairs(Players:GetPlayers()) do
 
 	if plr ~= player then
+
 		plr.CharacterAdded:Connect(function()
 			task.wait(1)
 			createESP(plr)
 		end)
+
 	end
 
 end
